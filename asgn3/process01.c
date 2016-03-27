@@ -29,14 +29,14 @@ int main(int argc, char *argv[])
    fd = open(argv[1], O_RDWR, 0);
    fileaccess(fd, count);
 
-   return 0;
-}
+   return 0
+;}
 
 void fileaccess(int fd, int count){
-   void lockfile (void);
-   void unlockfile (void);
+   void lockfile (int fd);
+   void unlockfile (int fd);
 
-   int i, k, value; pid_t pid;
+   int i, k, value, stat; pid_t pid;
    char buff[MAXSIZE];
    
    shmid = shmget(SHMKEY, sizeof(syncvars), PERMS | IPC_CREAT);
@@ -44,7 +44,7 @@ void fileaccess(int fd, int count){
    pid = getpid();
 
    for(i = 0; i < count; i++){
-      lockfile();
+      lockfile(fd);
       while(shmptr->turn == 1 && shmptr->flag[1] == TRUE );
       
       //critical stuff
@@ -57,14 +57,13 @@ void fileaccess(int fd, int count){
       lseek(fd, 0l, 0);
       k = strlen(buff); write(fd, buff, k);
       printf("pid = %d, new value = %d\n", pid, value);
-      unlockfile();   }
+      unlockfile(fd);   }
 }
 
-void lockfile (void){
-   shmptr->flag[0] = TRUE;
-   shmptr->turn = 1;
+void lockfile (int fd){
+   int stat = lockf(fd, F_LOCK, 0);
 }
 
-void unlockfile (void){
-   shmptr->flag[0] = FALSE;
+void unlockfile (int fd){
+   int stat = lockf(fd, F_ULOCK, 0);
 }

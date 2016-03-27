@@ -33,8 +33,8 @@ int main(int argc, char *argv[])
 }
 
 void fileaccess(int fd, int count){
-   void lockfile (void);
-   void unlockfile (void);
+   void lockfile (int fd);
+   void unlockfile (int fd);
 
    int i, k, value; pid_t pid;
    char buff[MAXSIZE];
@@ -45,7 +45,7 @@ void fileaccess(int fd, int count){
    pid = getpid();
 
    for(i = 0; i < count; i++){
-      lockfile();
+      lockfile(fd);
       while(shmptr->turn == 0 && shmptr->flag[0] == TRUE );
 
       //critical stuff
@@ -58,15 +58,14 @@ void fileaccess(int fd, int count){
       lseek(fd, 0l, 0);
       k = strlen(buff); write(fd, buff, k);
       printf("pid = %d, new value = %d\n", pid, value);
-      unlockfile();
+      unlockfile(fd);
    }
 }
 
-void lockfile (void){
-   shmptr->flag[1] = TRUE;
-   shmptr->turn = 0;
+void lockfile (int fd){
+   int stat = lockf(fd, F_LOCK, 0);
 }
 
-void unlockfile (void){
-   shmptr->flag[1] = FALSE;
+void unlockfile (int fd){
+  int stat = lockf(fd, F_ULOCK, 0);
 }
